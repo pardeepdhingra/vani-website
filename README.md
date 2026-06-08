@@ -26,20 +26,19 @@ const VANI_CONFIG = {
 
 Until `iosUrl` / `androidUrl` are real URLs, those buttons just scroll to the download section.
 
-## Contact form (FormSubmit.co — no backend)
+## Contact form (mailto — no backend, no third-party service)
 
-The form posts directly to **FormSubmit.co**, which forwards messages to
-`contact@galasar.com`. No server, no API key — works on static hosting.
+The form opens the visitor's own email app with the message pre-filled and addressed
+to `VANI_CONFIG.email` (contact@galasar.com). No server, no API key, no external service
+to ever go down — it just works, including on GitHub Pages.
 
-- The form `action` is `https://formsubmit.co/contact@galasar.com`.
-- JavaScript submits it via FormSubmit's AJAX endpoint so the visitor stays on the page
-  with an inline “thank you”. If JS is off or fetch fails, it falls back to a normal submit.
-- **One-time activation:** the *first* submission triggers a confirmation email to
-  `contact@galasar.com`. Click the link in that email once, and all future messages arrive.
-- A hidden `_honey` field blocks spam bots.
+- On submit, JS builds a `mailto:` link from the name / email / type / message fields and
+  opens the visitor's mail client; they press send.
+- A small “Prefer email? Write to us directly…” link is shown as a fallback.
 
-> Want to hide the email address in the HTML? After activation, FormSubmit gives you a
-> hashed endpoint like `https://formsubmit.co/abcdef123…`. Swap it into the form's `action`.
+> Want submissions to arrive silently (no mail app opening)? Switch to a form service like
+> **Web3Forms** or **Formspree**, or host on a platform with serverless functions (e.g.
+> Vercel) and POST to an API route. The mailto approach trades that for zero dependencies.
 
 ## Run locally
 

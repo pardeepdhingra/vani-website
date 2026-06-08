@@ -258,11 +258,7 @@
         <p class="section__sub">Vani grows from real family needs. Tell us what would help your child — a word, a feature, or just your story.</p>
       </div>
 
-      <form class="contact-form" id="contactForm" action="https://formsubmit.co/contact@galasar.com" method="POST" novalidate>
-        <!-- FormSubmit options -->
-        <input type="hidden" name="_subject" value="New Vani message from the website" />
-        <input type="hidden" name="_template" value="table" />
-        <input type="hidden" name="_captcha" value="false" />
+      <form class="contact-form" id="contactForm" novalidate>
         <div class="field field--half">
           <label for="cf-name">Your name</label>
           <input id="cf-name" name="name" type="text" autocomplete="name" maxlength="120" required placeholder="Priya" />
@@ -343,67 +339,40 @@
         if (email) s.textContent = email;
       });
 
-      // ---- Contact form → FormSubmit.co (works on static hosting / GitHub Pages) ----
-      // AJAX keeps the user on the page with an inline success message.
-      // If JS/fetch fails, the form still submits natively via its action="" attribute.
+      // ---- Contact form → opens the visitor's email app (mailto) ----
+      // No third-party service to depend on; works anywhere, including GitHub Pages.
+      // The form just pre-fills a message addressed to VANI_CONFIG.email.
       const form = document.getElementById("contactForm");
-      if (form) {
+      if (form && email) {
         const status = document.getElementById("cf-status");
         const submit = document.getElementById("cf-submit");
         const setStatus = (msg, kind) => {
           status.textContent = msg;
           status.className = "contact-form__status" + (kind ? " is-" + kind : "");
         };
-        // Derive the AJAX endpoint from the form's action (…/<email> → …/ajax/<email>).
-        const ajaxAction = form.getAttribute("action").replace(
-          "formsubmit.co/", "formsubmit.co/ajax/"
-        );
-
         const field = (name) => form.elements[name]; // avoids form.name / form.submit collisions
 
-        form.addEventListener("submit", async (event) => {
+        form.addEventListener("submit", (event) => {
           event.preventDefault();
           if (!form.reportValidity()) return;
           if (field("_honey") && field("_honey").value) return; // bot
 
           const name = field("name").value.trim();
+          const fromEmail = field("email").value.trim();
           const type = field("type").value;
-          const payload = {
-            name,
-            email: field("email").value.trim(),
-            type,
-            message: field("message").value.trim(),
-            _subject: `Vani — ${type} from ${name}`,
-            _template: "table",
-            _captcha: "false",
-          };
+          const message = field("message").value.trim();
 
-          submit.disabled = true;
-          const original = submit.textContent;
-          submit.textContent = "Sending…";
-          setStatus("", "");
+          const subject = `Vani — ${type} from ${name}`;
+          const body =
+            `Name: ${name}\n` +
+            `Email: ${fromEmail}\n` +
+            `About: ${type}\n\n` +
+            `${message}\n`;
 
-          try {
-            const res = await fetch(ajaxAction, {
-              method: "POST",
-              headers: { "Content-Type": "application/json", Accept: "application/json" },
-              body: JSON.stringify(payload),
-            });
-            const data = await res.json().catch(() => ({}));
-            if (res.ok && String(data.success) === "true") {
-              form.reset();
-              setStatus("Thank you — your message is on its way. 💛", "ok");
-            } else {
-              // Most likely the address still needs one-time activation; fall back to a real submit.
-              setStatus("Sending… if nothing happens, please email us directly.", "err");
-              form.submit();
-            }
-          } catch (err) {
-            form.submit(); // network/CORS issue → native submit (FormSubmit thank-you page)
-          } finally {
-            submit.disabled = false;
-            submit.textContent = original;
-          }
+          const mailto = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+          window.location.href = mailto;
+
+          setStatus(`Opening your email app… if nothing happens, email us at ${email}.`, "ok");
         });
       }
 
