@@ -1,0 +1,15 @@
+# Dependencies
+node_modules/
+
+# Local env / secrets
+.env
+.env.local
+.env*.local
+
+# Vercel
+.vercel/
+
+# Build / capture artifacts
+raw-shots/
+*.log
+.DS_Store
